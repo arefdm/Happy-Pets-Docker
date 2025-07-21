@@ -1,0 +1,51 @@
+networks:
+  pet-network:
+    external: true
+
+volumes:
+  pet-db-data:
+    external: true
+
+services:
+    frontend:
+      image: nginx:latest
+      ports:
+        - "8080:80"
+      volumes:
+        - ./frontend:/usr/share/nginx/html
+      restart: always
+      depends_on:
+        - backend
+      networks:
+        - pet-network
+
+    backend:
+      image: node:latest
+      working_dir: /app
+      volumes:
+        - .:/app
+      ports:
+        - "3000:3000"
+      command: sh -c "npm install express && node app.js"
+      depends_on:
+        - db
+      networks:
+        - pet-network
+      restart: always
+
+    db:
+      image: mysql:8.0.42
+      ports:
+        - "3307:3306"
+      volumes:
+        - pet-db-data:/var/lib/mysql
+      environment:
+        MYSQL_ROOT_PASSWORD: test@123
+        MYSQL_DATABASE: mydb
+        MYSQL_USER: admin
+        MYSQL_PASSWORD: admin@123
+      restart: always
+      networks:
+        - pet-network
+
+            
